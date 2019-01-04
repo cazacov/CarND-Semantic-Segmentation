@@ -65,22 +65,49 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     # Implement decoder by take VGG layer 7 output as input and upsampling it
 
     # First apply 1x1 convolution
-    conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes,
+    dec1_conv = tf.layers.conv2d(vgg_layer7_out, num_classes,
         kernel_size=1,
         padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))  # Penalize large weight values
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),  # Penalize large weight values
+        name='dec1_conv')
 
     # Deconvolution
-    output = tf.layers.conv2d_transpose(conv_1x1, num_classes,
+    dec1_trans = tf.layers.conv2d_transpose(dec1_conv, num_classes,
                                         kernel_size=4,
-                                        strides=(2,2),
+                                        strides=(2, 2),
                                         padding='same',
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                        name='dec1_trans')
 
+    dec2_conv = tf.layers.conv2d(dec1_trans, num_classes,
+                                 kernel_size=1,
+                                 padding='same',
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                 name='dec2_conv')
 
+    # Deconvolution
+    dec2_trans = tf.layers.conv2d_transpose(dec2_conv, num_classes,
+                                            kernel_size=4,
+                                            strides=(2, 2),
+                                            padding='same',
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                            name='dec2_trans')
 
+    dec3_conv = tf.layers.conv2d(dec2_trans, num_classes,
+                                 kernel_size=1,
+                                 padding='same',
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                 name='dec3_conv')
 
-    return None
+    # Deconvolution
+    dec3_trans = tf.layers.conv2d_transpose(dec3_conv, num_classes,
+                                            kernel_size=16,
+                                            strides=(8, 8),
+                                            padding='same',
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                            name='dec3_trans')
+
+    return dec3_trans
 tests.test_layers(layers)
 
 
