@@ -64,6 +64,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     # Implement decoder by take VGG layer 7 output as input and upsampling it
 
+    # Block 1
+
     # First apply 1x1 convolution
     dec1_conv = tf.layers.conv2d(vgg_layer7_out, num_classes,
         kernel_size=1,
@@ -79,19 +81,25 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                         name='dec1_trans')
 
+    # Block 2
+
     dec2_conv = tf.layers.conv2d(dec1_trans, num_classes,
                                  kernel_size=1,
                                  padding='same',
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                  name='dec2_conv')
 
-    # Deconvolution
-    dec2_trans = tf.layers.conv2d_transpose(dec2_conv, num_classes,
+    # Skip connection from encoder layer 4
+    dec2_add = tf.add(dec2_conv, vgg_layer4_out, name='dec2_add')
+
+    dec2_trans = tf.layers.conv2d_transpose(dec2_add, num_classes,
                                             kernel_size=4,
                                             strides=(2, 2),
                                             padding='same',
                                             kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                             name='dec2_trans')
+
+    # Block 3
 
     dec3_conv = tf.layers.conv2d(dec2_trans, num_classes,
                                  kernel_size=1,
@@ -99,8 +107,11 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                  name='dec3_conv')
 
-    # Deconvolution
-    dec3_trans = tf.layers.conv2d_transpose(dec3_conv, num_classes,
+    # Skip connection from encoder layer 4
+    dec2_add = tf.add(dec3_conv, vgg_layer3_out, name='dec3_add')
+
+
+    dec3_trans = tf.layers.conv2d_transpose(dec2_add, num_classes,
                                             kernel_size=16,
                                             strides=(8, 8),
                                             padding='same',
