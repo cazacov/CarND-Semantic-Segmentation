@@ -64,6 +64,13 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     # Implement decoder by take VGG layer 7 output as input and upsampling it
 
+    # Debug info
+    print('vgg_layer3_out shape: ', vgg_layer3_out.shape)
+    print('vgg_layer4_out shape: ', vgg_layer4_out.shape)
+    print('vgg_layer7_out shape: ', vgg_layer7_out.shape)
+    print('num_classes: ', num_classes)
+
+
     # Block 1
 
     # First apply 1x1 convolution
@@ -73,6 +80,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),  # Penalize large weight values
         name='dec1_conv')
 
+    print('dec1_conv shape: ', dec1_conv.shape)
+
     # Deconvolution
     dec1_trans = tf.layers.conv2d_transpose(dec1_conv, num_classes,
                                         kernel_size=4,
@@ -81,16 +90,22 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                         name='dec1_trans')
 
+    print('dec1_trans shape: ', dec1_trans.shape)
+
     # Block 2
 
-    dec2_conv = tf.layers.conv2d(dec1_trans, num_classes,
+    # Prepare skip connection from encoder layer 4
+    dec2_conv = tf.layers.conv2d(vgg_layer4_out, num_classes,
                                  kernel_size=1,
                                  padding='same',
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                  name='dec2_conv')
 
-    # Skip connection from encoder layer 4
-    dec2_add = tf.add(dec2_conv, vgg_layer4_out, name='dec2_add')
+    print('dec2_conv shape: ', dec2_conv.shape)
+
+    # Add direct and skip tensors
+    dec2_add = tf.add(dec1_trans, dec2_conv, name='dec2_add')
+    print('dec2_add shape: ', dec2_add.shape)
 
     dec2_trans = tf.layers.conv2d_transpose(dec2_add, num_classes,
                                             kernel_size=4,
@@ -98,25 +113,30 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                             padding='same',
                                             kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                             name='dec2_trans')
+    print('dec2_trans shape: ', dec2_trans.shape)
 
     # Block 3
 
-    dec3_conv = tf.layers.conv2d(dec2_trans, num_classes,
+    # Prepare skip connection from encoder layer 3
+    dec3_conv = tf.layers.conv2d(vgg_layer3_out, num_classes,
                                  kernel_size=1,
                                  padding='same',
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                  name='dec3_conv')
+    print('dec3_conv shape: ', dec3_conv.shape)
 
-    # Skip connection from encoder layer 4
-    dec2_add = tf.add(dec3_conv, vgg_layer3_out, name='dec3_add')
+    # Add direct and skip tensors
+    dec3_add = tf.add(dec2_trans, dec3_conv, name='dec3_add')
+    print('dec3_add shape: ', dec3_add.shape)
 
 
-    dec3_trans = tf.layers.conv2d_transpose(dec2_add, num_classes,
+    dec3_trans = tf.layers.conv2d_transpose(dec3_add, num_classes,
                                             kernel_size=16,
                                             strides=(8, 8),
                                             padding='same',
                                             kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
                                             name='dec3_trans')
+    print('dec3_trans shape: ', dec3_trans.shape)
 
     return dec3_trans
 tests.test_layers(layers)
