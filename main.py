@@ -225,7 +225,11 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
+    tf.reset_default_graph()
+
     with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
@@ -236,10 +240,23 @@ def run():
 
         # TODO: Build NN using load_vgg, layers, and optimize function
 
+        images, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
+
+        last_nn_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
+
+        correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes], name='correct_label')
+        learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+        logits, optimizer, cross_entropy_loss = optimize(last_nn_layer, correct_label, correct_label, num_classes)
+
+
         # TODO: Train NN using the train_nn function
+        train_nn(sess, 10, 16, get_batches_fn, optimizer, cross_entropy_loss, images, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
+        saver = tf.train.Saver()
+        saver.save(sess, './runs/saves/first')
+        print("Model saved")
 
         # OPTIONAL: Apply the trained model to a video
 
