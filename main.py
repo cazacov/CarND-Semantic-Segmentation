@@ -8,7 +8,7 @@ import project_tests as tests
 from sklearn.utils import shuffle
 
 EPOCHS = 5
-KEEP_PROB = 0.5
+KEEP_PROB = 0.75
 LEARNING_RATE = 0.001
 BATCH_SIZE = 16
 
@@ -272,7 +272,7 @@ def run():
 
 
         saver = tf.train.Saver()
-        savedir = os.path.join(runs_dir, f"Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}_Loss{last_loss:.3f}")
+        savedir = os.path.join(runs_dir, f"Loss{last_loss:.3f}_Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}")
         if not os.path.exists(savedir):
             os.makedirs(savedir)
 
