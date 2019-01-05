@@ -71,13 +71,17 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     print('vgg_layer7_out shape: ', vgg_layer7_out.shape)
     print('num_classes: ', num_classes)
 
+    std_dev = 0.01
+    reg_scale = 0.001
+
     # Block 1
 
     # First apply 1x1 convolution
     dec1_conv = tf.layers.conv2d(vgg_layer7_out, num_classes,
         kernel_size=1,
         padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),  # Penalize large weight values
+        kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),  # Penalize large weight values
         name='dec1_conv')
 
     print('dec1_conv shape: ', dec1_conv.shape)
@@ -87,7 +91,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                         kernel_size=4,
                                         strides=(2, 2),
                                         padding='same',
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),
                                         name='dec1_trans')
 
     print('dec1_trans shape: ', dec1_trans.shape)
@@ -98,7 +103,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     dec2_conv = tf.layers.conv2d(vgg_layer4_out, num_classes,
                                  kernel_size=1,
                                  padding='same',
-                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                 kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),
                                  name='dec2_conv')
 
     print('dec2_conv shape: ', dec2_conv.shape)
@@ -111,7 +117,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                             kernel_size=4,
                                             strides=(2, 2),
                                             padding='same',
-                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                            kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),
                                             name='dec2_trans')
     print('dec2_trans shape: ', dec2_trans.shape)
 
@@ -121,7 +128,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     dec3_conv = tf.layers.conv2d(vgg_layer3_out, num_classes,
                                  kernel_size=1,
                                  padding='same',
-                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                 kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),
                                  name='dec3_conv')
     print('dec3_conv shape: ', dec3_conv.shape)
 
@@ -134,7 +142,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                             kernel_size=16,
                                             strides=(8, 8),
                                             padding='same',
-                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=1e-3),
+                                            kernel_initializer=tf.truncated_normal_initializer(stddev=std_dev),
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=reg_scale),
                                             name='dec3_trans')
     print('dec3_trans shape: ', dec3_trans.shape)
 
