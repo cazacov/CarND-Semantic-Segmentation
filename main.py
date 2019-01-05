@@ -7,6 +7,10 @@ from distutils.version import LooseVersion
 import project_tests as tests
 from sklearn.utils import shuffle
 
+EPOCHS = 5
+KEEP_PROB = 0.5
+LEARNING_RATE = 0.001
+BATCH_SIZE = 16
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -197,6 +201,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     """
     # TODO: Implement function
 
+    last_loss = 0
+
     for epoch in range(epochs):
 
         loss_sum = 0
@@ -207,13 +213,15 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                      feed_dict={
                         input_image: images_train,
                         correct_label: labels_train,
-                        keep_prob: 0.5,
-                        learning_rate: 0.001
+                        keep_prob: KEEP_PROB,
+                        learning_rate: LEARNING_RATE
                      })
             loss_sum = loss_sum + loss
 
-        print("Epoch: ", epoch, "  mean loss:", loss_sum / batch_size)
+        last_loss = loss_sum / batch_size
+        print("Epoch: ", epoch, "  mean loss:", last_loss)
 
+    return last_loss
 
 tests.test_train_nn(train_nn)
 
@@ -232,6 +240,8 @@ def run():
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
+
+    tf.reset_default_graph()
 
     with tf.Session() as sess:
         # Path to vgg model
@@ -255,12 +265,18 @@ def run():
 
         # TODO: Train NN using the train_nn function
         sess.run(tf.global_variables_initializer())
-        train_nn(sess, 10, 16, get_batches_fn, optimizer, cross_entropy_loss, images, correct_label, keep_prob, learning_rate)
+        last_loss = train_nn(sess, EPOCHS, BATCH_SIZE, get_batches_fn, optimizer, cross_entropy_loss, images, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
+
+
         saver = tf.train.Saver()
-        saver.save(sess, './runs/saves/first')
+        savedir = os.path.join(runs_dir, f"Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}_Loss{last_loss:.3f}")
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
+
+        saver.save(sess, os.path.join(savedir, "model"))
         print("Model saved")
 
         # OPTIONAL: Apply the trained model to a video
