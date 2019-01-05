@@ -5,6 +5,7 @@ import helper
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
+from sklearn.utils import shuffle
 
 
 # Check TensorFlow Version
@@ -156,10 +157,10 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     # Reshape tensor to convert 4-D in 2-D
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
 
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
-        logits=logits, labels=correct_label)
-
     # Cost function
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=correct_label, logits=logits)
+
+    # Minimize loss
     cross_entropy_loss = tf.reduce_mean(cross_entropy)
 
     # Optimizer
@@ -186,8 +187,28 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
-    pass
+
+    for epoch in range(epochs):
+
+        loss_sum = 0
+
+        for images_train, labels_train in get_batches_fn(batch_size):
+
+            images_train, labels_train = shuffle(images_train, labels_train)
+            loss,_ = sess.run([cross_entropy_loss, train_op],
+                     feed_dict={
+                        input_image: images_train,
+                        correct_label: labels_train,
+                        keep_prob: 0.5,
+                        learning_rate: 0.001
+                     })
+            loss_sum = loss_sum + loss
+
+        print("Epoch: ", epoch, "  mean loss:", loss_sum / batch_size)
+
+
 tests.test_train_nn(train_nn)
+
 
 
 def run():
