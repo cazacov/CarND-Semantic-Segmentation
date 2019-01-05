@@ -71,7 +71,6 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     print('vgg_layer7_out shape: ', vgg_layer7_out.shape)
     print('num_classes: ', num_classes)
 
-
     # Block 1
 
     # First apply 1x1 convolution
@@ -156,15 +155,16 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     # Reshape tensors to convert 4-D in 2-D
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    labels = tf.reshape(correct_label, (-1, num_classes))
 
     # Cost function
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=correct_label, logits=logits)
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
 
     # Minimize loss
     cross_entropy_loss = tf.reduce_mean(cross_entropy)
 
     # Optimizer
-    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy_loss)
+    optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cross_entropy_loss)
 
     return logits, optimizer, cross_entropy_loss
 
@@ -193,7 +193,6 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         loss_sum = 0
 
         for images_train, labels_train in get_batches_fn(batch_size):
-
             images_train, labels_train = shuffle(images_train, labels_train)
             loss, _ = sess.run([cross_entropy_loss, train_op],
                      feed_dict={
@@ -225,11 +224,7 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    tf.reset_default_graph()
-
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
@@ -250,6 +245,7 @@ def run():
 
 
         # TODO: Train NN using the train_nn function
+        sess.run(tf.global_variables_initializer())
         train_nn(sess, 10, 16, get_batches_fn, optimizer, cross_entropy_loss, images, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
