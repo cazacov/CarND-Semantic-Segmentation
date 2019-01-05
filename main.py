@@ -154,7 +154,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     """
     # TODO: Implement function
 
-    # Reshape tensor to convert 4-D in 2-D
+    # Reshape tensors to convert 4-D in 2-D
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
 
     # Cost function
@@ -195,7 +195,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         for images_train, labels_train in get_batches_fn(batch_size):
 
             images_train, labels_train = shuffle(images_train, labels_train)
-            loss,_ = sess.run([cross_entropy_loss, train_op],
+            loss, _ = sess.run([cross_entropy_loss, train_op],
                      feed_dict={
                         input_image: images_train,
                         correct_label: labels_train,
@@ -246,7 +246,7 @@ def run():
 
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes], name='correct_label')
         learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-        logits, optimizer, cross_entropy_loss = optimize(last_nn_layer, correct_label, correct_label, num_classes)
+        logits, optimizer, cross_entropy_loss = optimize(last_nn_layer, correct_label, learning_rate, num_classes)
 
 
         # TODO: Train NN using the train_nn function
