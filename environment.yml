@@ -16,3 +16,4 @@ dependencies:
         - tensorflow-gpu
         - requests
         - scikit-learn
+        - opencv-python
