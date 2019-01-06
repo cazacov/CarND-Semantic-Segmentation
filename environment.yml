@@ -1,4 +1,4 @@
-name: carnd-advdl-odlab
+name: python3tf
 channels:
     - https://conda.anaconda.org/menpo
     - conda-forge

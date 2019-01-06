@@ -7,8 +7,8 @@ from distutils.version import LooseVersion
 import project_tests as tests
 from sklearn.utils import shuffle
 
-EPOCHS = 5
-KEEP_PROB = 0.75
+EPOCHS = 10
+KEEP_PROB = 0.5
 LEARNING_RATE = 0.001
 BATCH_SIZE = 16
 
@@ -51,8 +51,6 @@ def load_vgg(sess, vgg_path):
     layer7_out_tensor = encoder_graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
 
     return image_tensor, keep_prob_tensor, layer3_out_tensor, layer4_out_tensor, layer7_out_tensor
-
-
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -167,7 +165,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     # TODO: Implement function
 
     # Reshape tensors to convert 4-D in 2-D
-    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
     labels = tf.reshape(correct_label, (-1, num_classes))
 
     # Cost function
@@ -180,7 +178,6 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cross_entropy_loss)
 
     return logits, optimizer, cross_entropy_loss
-
 tests.test_optimize(optimize)
 
 
@@ -222,7 +219,6 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         print("Epoch: ", epoch, "  mean loss:", last_loss)
 
     return last_loss
-
 tests.test_train_nn(train_nn)
 
 
@@ -262,6 +258,8 @@ def run():
         learning_rate = tf.placeholder(tf.float32, name='learning_rate')
         logits, optimizer, cross_entropy_loss = optimize(last_nn_layer, correct_label, learning_rate, num_classes)
 
+        # Create a saver object which will save all the variables
+        saver = tf.train.Saver()
 
         # TODO: Train NN using the train_nn function
         sess.run(tf.global_variables_initializer())
@@ -270,17 +268,19 @@ def run():
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
+        helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, images)
 
-        saver = tf.train.Saver()
-        savedir = os.path.join(runs_dir, f"Loss{last_loss:.3f}_Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}")
-        if not os.path.exists(savedir):
-            os.makedirs(savedir)
+        # Save Tensorflow model
+        export_dir = os.path.join(runs_dir, f"Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}")
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir)
 
-        saver.save(sess, os.path.join(savedir, "model"))
-        print("Model saved")
+        saver.save(sess, os.path.join(export_dir+"/model", "model"))
+        print(f"Model saved to {export_dir}")
 
         # OPTIONAL: Apply the trained model to a video
 
+        # See separate jupyter notebook sheet
 
 if __name__ == '__main__':
     run()
