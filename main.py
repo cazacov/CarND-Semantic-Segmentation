@@ -271,7 +271,7 @@ def run():
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, images)
 
         # Save Tensorflow model
-        export_dir = os.path.join(runs_dir, f"Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}")
+        export_dir = os.path.join(runs_dir, f"Epochs{EPOCHS}_Batch{BATCH_SIZE}_KeepProb{KEEP_PROB}_LearnRate{LEARNING_RATE}_Loss{last_loss:.3f}")
         if not os.path.exists(export_dir):
             os.makedirs(export_dir)
 
